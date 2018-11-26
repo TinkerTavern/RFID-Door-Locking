@@ -1,23 +1,20 @@
 import cv2
 import sys
-import time as t
-import numpy as np
 import serial
-
-
+import time
 cascPath = "data/haarcascade_frontalface_alt.xml"#sys.argv[1]
 faceCascade = cv2.CascadeClassifier(cascPath)
 
 video_capture = cv2.VideoCapture(0)
 
-timearray = np.zeros(1000)
-index = 0
-detection = 0
+ser = serial.Serial('com3', 9600) # USB Serial for arduino
+time.sleep(2)
+
+counter = 0
 limit = 30
 
-ser = serial.Serial('com3', 9600) # USB Serial for arduino
 while True:
-    start = t.time()
+    found = False
     # Capture frame-by-frame
     ret, frame = video_capture.read()
 
@@ -35,23 +32,23 @@ while True:
     for (x, y, width, height) in faces:
         cv2.rectangle(frame, (x, y), (x + width, y + height), (0, 255, 0), 2)
         if width > 100:
-            detection += 1
-            if detection > limit:
-                ser.write(b"Face detected!")
+            counter += 1
+            if counter > limit:
+                found = True
         else:
-            detection = 0
+            counter = 0
     # Display the resulting frame
     cv2.imshow('Video', frame)
 
+    
+    if found:
+        ser.write(b"1")
+        
+    if len(faces) == 0:
+        counter = 0
+    #print(ser.readline())
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-    end = t.time()
-    if index < 1000:
-        timearray[index] = end-start
-    else:
-        break
-    index += 1
 # When everything is done, release the capture
 video_capture.release()
 cv2.destroyAllWindows()
-print(1/(np.average(timearray)))
