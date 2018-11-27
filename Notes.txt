@@ -1,0 +1,50 @@
+Face Detection:
+- 
+
+
++ A little faster (if needed)
+
+Arduino-PC Comms:
+- Read the actual data
+- 
+
++ If we want, we can use HM 10 modules for extra comms with PC and phones
++
+
+
+
+
+Documentation:
+- Write about the sections you do AS YOU GO ALONG (but not in big detail) 
+- References
+-
+
+
+
+
+
+
+
+
+Features:
+- Face Detection
+- Arduino-PC Comms
+- Arduino-Arduino comms
+- RFID Scanner
+- LED Matrix
+- Screen and buttons (maybe numpad)
+- Noise speakers (synchronised)
+- 
+
+
+
+Potential problems:
+- Not enough pins
+- Comms issues
+
+
+Questions:
+- What do when wrong
+
+
+We thouhgt we wouldn't have enough pins for our project, however some research (LINK), shows that the analogue in pins can in fact be used

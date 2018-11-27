@@ -30,7 +30,7 @@ while True:
     
     # Draw a rectangle around the faces
     for (x, y, width, height) in faces:
-        cv2.rectangle(frame, (x, y), (x + width, y + height), (0, 255, 0), 2)
+        cv2.rectangle(frame, (x, y), (x + width, y + height), (255, 0, 255), 2)
         if width > 100:
             counter += 1
             if counter > limit:

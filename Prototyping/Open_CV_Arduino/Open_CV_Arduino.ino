@@ -23,7 +23,12 @@ void setup() {
 
 
 void loop() {
-  while (Serial.available() > 0) {
+  while (!triggered) checkDetection();
+
+}
+
+void checkDetection() {
+    while (Serial.available() > 0) {
       int value = Serial.read();
       digitalWrite(13, HIGH);   // turn the LED on (HIGH is the voltage level)
       delay(100);                       // wait for a second
