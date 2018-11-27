@@ -34,7 +34,7 @@ Features:
 - LED Matrix
 - Screen and buttons (maybe numpad)
 - Noise speakers (synchronised)
-- 
+
 
 
 
