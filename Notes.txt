@@ -1,7 +1,6 @@
 Face Detection:
 - 
 
-
 + A little faster (if needed)
 
 Arduino-PC Comms:
@@ -11,19 +10,14 @@ Arduino-PC Comms:
 + If we want, we can use HM 10 modules for extra comms with PC and phones
 +
 
-
-
+LED Matrix:
+- Points to current focus (camera, tag or questions)
+- If wrong, X mark, happy face if right
 
 Documentation:
 - Write about the sections you do AS YOU GO ALONG (but not in big detail) 
 - References
 -
-
-
-
-
-
-
 
 
 Features:
@@ -33,8 +27,7 @@ Features:
 - RFID Scanner
 - LED Matrix
 - Screen and buttons (maybe numpad)
-- Noise speakers (synchronised)
-
+- Speakers (synchronised)
 
 
 
@@ -44,7 +37,11 @@ Potential problems:
 
 
 Questions:
-- What do when wrong
+- What happens when the user enters a wrong answer or wrong tag.
 
+Camera first
+Then Tag
+Then Question
 
 We thouhgt we wouldn't have enough pins for our project, however some research (LINK), shows that the analogue in pins can in fact be used
+We thought about using a shift register for other components.. thoughts later
