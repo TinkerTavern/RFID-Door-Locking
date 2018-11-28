@@ -25,7 +25,8 @@ byte nuidPICC[4];
 
 char sensorPrintout[13];
 
-String validIDs[2] = {"59 aa 83 3c", "1d 53 fe 9c"};
+String validIDs[2] = {"1d 53 fe 9c ","bd a5 0 9d "};
+
 void setup() {
   TFTscreen.begin();
 
@@ -44,7 +45,7 @@ void setup() {
       key.keyByte[i] = 0xFF;
   }
 
-  dump_byte_array(key.keyByte, MFRC522::MF_KEY_SIZE);
+  //dump_byte_array(key.keyByte, MFRC522::MF_KEY_SIZE);
 }
 
 void loop() {
@@ -78,8 +79,9 @@ void loop() {
   TFTscreen.text(sensorPrintout, 10, 70); // Replaces the text with an empty string
 //  Serial.println(F("The NUID tag is:"));
 //  Serial.print(F("In hex: "));
-  sensorVal = dump_byte_array(rfid.uid.uidByte, rfid.uid.size);
-  
+  sensorVal = byteToStringArray(rfid.uid.uidByte, rfid.uid.size);
+
+
   // Halt PICC
   rfid.PICC_HaltA();
 
@@ -94,25 +96,34 @@ void loop() {
   TFTscreen.text(sensorPrintout, 10, 70);
   //Serial.println(sensorVal);
 
-  
+  bool valid = false;
+  for (String ID: validIDs) {
+    if (sensorVal == ID) valid = true;
+  }
+  if (valid)  tone(5, 3000, 500); // Correct tag
+  else tone(5, 100, 500); // Incorrect tag
 //  tone(5, 1750, 500); // Shows a tag has been read
 //  delay(1000);
-  tone(5, 3000, 500); // Correct tag
+ 
 //  delay(1000);
 //  tone(5, 100, 500); // Incorrect tag
 
 }
 
-String dump_byte_array(byte *buffer, byte bufferSize) {
-    String numbers[4];
-    for (int j=0; j < bufferSize; j++) numbers[j] = String(buffer[j], HEX);
-//    for (byte i = 0; i < bufferSize; i++) {
-//        Serial.print(buffer[i] < 0x10 ? " 0" : " ");
-//        Serial.print(buffer[i], HEX);
-//    }
+String byteToStringArray(byte *buffer, byte bufferSize) {
+  String arr[bufferSize];
+  for (byte i=0; i < bufferSize; i++) arr[i] = String(buffer[i], HEX);
+  String str = intArrayToString(arr, bufferSize);
+  return str;
+}
+
+
+String intArrayToString(String *intArray, byte bufferSize){
+//    String numbers[4];
+//    for (int j=0; j < bufferSize; j++) numbers[j] = String(buffer[j], HEX);
     String fullString;
     for (int j=0; j < bufferSize; j++) {
-      fullString.concat(numbers[j]);
+      fullString.concat(intArray[j]);
       fullString.concat(" ");
     }
     return fullString;

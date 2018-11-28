@@ -6,7 +6,7 @@ boolean triggered = false;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
-  pinMode(13, OUTPUT);
+  pinMode(A5, OUTPUT);
 }
 
 //void loop() {
@@ -30,9 +30,9 @@ void loop() {
 void checkDetection() {
     while (Serial.available() > 0) {
       int value = Serial.read();
-      digitalWrite(13, HIGH);   // turn the LED on (HIGH is the voltage level)
+      digitalWrite(A5, HIGH);   // turn the LED on (HIGH is the voltage level)
       delay(100);                       // wait for a second
-      digitalWrite(13, LOW);    // turn the LED off by making the voltage LOW
+      digitalWrite(A5, LOW);    // turn the LED off by making the voltage LOW
       delay(100); 
   }
 }

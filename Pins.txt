@@ -1,0 +1,11 @@
+0/1- USB Comms (reserved)
+2/3- BT Comms
+4-
+5- Buzzer
+6-8- TFT Screen
+9-13- RFID Reader
+A0-A2- Buttons
+A4/A5- LED's
+
+ICSP Pins
+3/4- Screen
