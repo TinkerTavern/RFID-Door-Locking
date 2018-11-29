@@ -27,7 +27,6 @@ void loop() {
     } //makes the string readString
 
     if (test.length() > 0) {
-      Serial.println(test); //prints string to serial port out
       testUID(test);
       test = ""; //clears variable for new input
     }

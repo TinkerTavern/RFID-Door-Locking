@@ -9,7 +9,7 @@ faceCascade = cv2.CascadeClassifier(cascPath)
 video_capture = cv2.VideoCapture(0)
 
 ser = serial.Serial('com3', 9600) # USB Serial for arduino
-time.sleep(2000)
+time.sleep(2)
 
 counter = 0
 limit = 50
@@ -43,9 +43,11 @@ while True:
 
     
     if found:
-        ser.write(b"1")
+        ser.write(b"True")
         counter = 0
         found = False
+        time.sleep(60)
+        #print(ser.readline())
         
     if len(faces) == 0:
         counter = 0

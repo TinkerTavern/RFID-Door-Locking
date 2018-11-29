@@ -35,16 +35,10 @@ MFRC522::MIFARE_Key key;
 byte nuidPICC[4];
 
 char sensorPrintout[13];
-
+bool faceDetected = false;
 
 void setup() {
   TFTscreen.begin();
-
-  TFTscreen.background(255, 0, 0);
-
-  TFTscreen.stroke(255,255,255);
-  TFTscreen.setTextSize(1);
-  TFTscreen.text("Please scan RFID card",5,40);
   
   mySerial.begin(38400);
   Serial.begin(9600); // Initialize serial communications with the PC
@@ -59,13 +53,37 @@ void setup() {
 
   pinMode(answerButton1, OUTPUT); //set player buttons as inputs
   pinMode(answerButton2, OUTPUT);
+
+  TFTscreen.background(255, 0, 0);
+  TFTscreen.stroke(255,255,255);
+  TFTscreen.text("Please scan RFID card", 5, 40); // Replaces the text with an empty string
 }
 
+void detectFace() {
+  
+}
+
+
 void loop() {
+  if (!faceDetected) { 
+    String newString;
+    if (Serial.available()) {
+      while (Serial.available()) {
+        delay(10);  //small delay to allow input buffer to fill
+        char c = Serial.read();  //gets one byte from serial buffer
+        newString += c;
+      } //makes the string readString
+    
+    if (newString.length() > 0) {
+      if (newString == "True") faceDetected = true;
+    }
+  }
+  }
+  else {
   if (RFIDValid == "f"){
   String sensorVal;
 // Look for new cards
-  if ( ! rfid.PICC_IsNewCardPresent())
+  if (! rfid.PICC_IsNewCardPresent())
     return;
   
   // Verify if the NUID has been readed
@@ -157,7 +175,10 @@ void loop() {
       
     }
    }
+  }
 }
+
+
 
 String byteToStringArray(byte *buffer, byte bufferSize) {
   String arr[bufferSize];
@@ -202,7 +223,6 @@ String recieveCommand() {
     String command;
     delay(100); //
     if (mySerial.available()) {
-
       char c = mySerial.read();  //gets one byte from serial buffer
       command += c;
     } //makes the string readString
@@ -213,7 +233,6 @@ String recieveCommand() {
       return command; // Returns t or f
     }
     else return "f"; // Returns f if nothing found
-  //}
 }
 
 
@@ -221,6 +240,7 @@ void restartProgram() {
   RFIDValid = "f";
   questionRight = false;
   questionAnswered = false;
-  delay(5000);
+  faceDetected = false;
+  delay(1000); // 5000 in final product
   setup();
 }
