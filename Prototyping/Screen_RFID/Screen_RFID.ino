@@ -4,9 +4,8 @@
 #include <SPI.h>
 #include <MFRC522.h>
 // button interrupt library
-//int answerButton3 = A0;
-//int answerButton2 = A1;
-//int answerButton1 = A2;
+int answerButton1 = 2;
+int answerButton2 = 3;
 // TFT Screen Libraries
 #include <SPI.h>
 #include <TFT.h>
@@ -56,12 +55,11 @@ void setup() {
   for (byte i = 0; i < 6; i++) {
       key.keyByte[i] = 0xFF;
   }
-// attachPinChangeInterrupt(answerButton1, answer1, FALLING); 
-// attachPinChangeInterrupt(answerButton2, answer2, FALLING); 
-// attachPinChangeInterrupt(answerButton3, answer3, FALLING); 
-// pinMode(answerButton1, OUTPUT); //set player buttons as inputs
-// pinMode(answerButton2, OUTPUT);
-// pinMode(answerButton3, OUTPUT);
+  attachInterrupt(0, answer1, FALLING); //specifying which interrupt pins correspond to which pin, and specifying the ISRs
+  attachInterrupt(1, answer2, FALLING);
+
+  pinMode(answerButton1, OUTPUT); //set player buttons as inputs
+  pinMode(answerButton2, OUTPUT);
 }
 
 void loop() {
@@ -129,7 +127,7 @@ void loop() {
     TFTscreen.text("snow", 5, 40); // Replaces the text with an empty string
     TFTscreen.text("angels", 5, 60); // Replaces the text with an empty string
     TFTscreen.text("cookies", 5, 80); // Replaces the text with an empty string
-//    buttonsOn();
+    buttonsOn();
 
   }else{
     TFTscreen.background(255, 0, 0);
@@ -140,29 +138,29 @@ void loop() {
   }
   }else{
    delay(100);
-//    if(questionAnswered == true){
-//      buttonsOff();
-//      if (questionRight == true){
-//        TFTscreen.background(255, 0, 0);
-//        TFTscreen.stroke(255,255,255); // Clears the previous text
-//        TFTscreen.text("Door Opened", 5, 40); // Replaces the text with an empty string
-//        //mySerial.write("Open door");
-//      }else{
-//        TFTscreen.background(255, 0, 0);
-//        TFTscreen.stroke(255,255,255); // Clears the previous text
-//        TFTscreen.text("Wrong Answer Try Again", 5, 40); // Replaces the text with an empty string
-//        delay(1000);
-//        TFTscreen.background(255, 0, 0);
-//        TFTscreen.stroke(255,255,255); // Clears the previous text
-//        TFTscreen.text("Whats The Password?", 5, 20); // Replaces the text with an empty string
-//        TFTscreen.text("snow", 5, 40); // Replaces the text with an empty string
-//        TFTscreen.text("angels", 5, 60); // Replaces the text with an empty string
-//        TFTscreen.text("cookies", 5, 80); // Replaces the text with an empty string
-//       // mySerial.write("kill");
-//        buttonsOn();
-//      }
-//      
-//    }
+    if(questionAnswered == true){
+      buttonsOff();
+      if (questionRight == true){
+        TFTscreen.background(255, 0, 0);
+        TFTscreen.stroke(255,255,255); // Clears the previous text
+        TFTscreen.text("Door Opened", 5, 40); // Replaces the text with an empty string
+        //mySerial.write("Open door");
+      }else{
+        TFTscreen.background(255, 0, 0);
+        TFTscreen.stroke(255,255,255); // Clears the previous text
+        TFTscreen.text("Wrong Answer Try Again", 5, 40); // Replaces the text with an empty string
+        delay(1000);
+        TFTscreen.background(255, 0, 0);
+        TFTscreen.stroke(255,255,255); // Clears the previous text
+        TFTscreen.text("Whats The Password?", 5, 20); // Replaces the text with an empty string
+        TFTscreen.text("snow", 5, 40); // Replaces the text with an empty string
+        TFTscreen.text("angels", 5, 60); // Replaces the text with an empty string
+        TFTscreen.text("cookies", 5, 80); // Replaces the text with an empty string
+       // mySerial.write("kill");
+        buttonsOn();
+      }
+      
+    }
    }
 }
 
@@ -184,27 +182,21 @@ String intArrayToString(String *intArray, byte bufferSize){
     }
     return fullString;
 }
-//
-//void answer1() { //ISR for the answer 1 button
-// buttonsOff();
-//}
-//void answer2() { //ISR for the answer 2 button
-//  buttonsOff(); 
-//}
-//void answer3() { //ISR for the answer 3 button
-// buttonsOff(); 
-// questionRight = true;
-//}
-//void buttonsOff(){
-// pinMode(answerButton1, OUTPUT); //set player buttons as inputs
-// pinMode(answerButton2, OUTPUT);
-// pinMode(answerButton3, OUTPUT);
-// questionAnswered = true;
-//}
-//void buttonsOn(){
-// pinMode(answerButton1, INPUT); //set player buttons as inputs
-// pinMode(answerButton2, INPUT);
-// pinMode(answerButton3, INPUT);
-// questionAnswered = false;
-//
-//}
+
+void answer1() { //ISR for the answer 1 button
+ buttonsOff();
+}
+void answer2() { //ISR for the answer 2 button
+  buttonsOff(); 
+}
+void buttonsOff(){
+ pinMode(answerButton1, OUTPUT); //set player buttons as inputs
+ pinMode(answerButton2, OUTPUT);
+ questionAnswered = true;
+}
+void buttonsOn(){
+ pinMode(answerButton1, INPUT); //set player buttons as inputs
+ pinMode(answerButton2, INPUT);
+ questionAnswered = false;
+
+}
