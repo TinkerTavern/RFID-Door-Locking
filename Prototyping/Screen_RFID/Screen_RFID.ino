@@ -1,10 +1,20 @@
+
+
 // RFID Libraries
 #include <SPI.h>
 #include <MFRC522.h>
+// button interrupt library
+//#include <PinChangeInt.h>
+//int answerButton3 = A0;
+//int answerButton2 = A1;
+//int answerButton1 = A2;
 // TFT Screen Libraries
 #include <SPI.h>
 #include <TFT.h>
-
+//bluetooth libraries
+#include <SoftwareSerial.h>
+//initializing bluetooth connection
+SoftwareSerial mySerial(2, 3); 
 // TFT Screen pins, configured to be different
 #define cs   8
 #define dc   7
@@ -13,6 +23,9 @@
 #define RST_PIN         9           
 #define SS_PIN          10       
 
+bool RFIDValid = false;
+bool questionRight = false;
+bool questionAnswered = false;
 
 TFT TFTscreen = TFT(cs, dc, rst);
 
@@ -33,10 +46,10 @@ void setup() {
   TFTscreen.background(255, 0, 0);
 
   TFTscreen.stroke(255,255,255);
-  TFTscreen.setTextSize(3);
-  TFTscreen.text("RFID UID: ",5,40);
-  TFTscreen.setTextSize(2);
-
+  TFTscreen.setTextSize(1);
+  TFTscreen.text("Please scan RFID card",5,40);
+  
+  mySerial.begin(38400);
   Serial.begin(9600); // Initialize serial communications with the PC
   while (!Serial);    // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
   SPI.begin();        // Init SPI bus
@@ -44,11 +57,16 @@ void setup() {
   for (byte i = 0; i < 6; i++) {
       key.keyByte[i] = 0xFF;
   }
-
-  //dump_byte_array(key.keyByte, MFRC522::MF_KEY_SIZE);
+// attachPinChangeInterrupt(answerButton1, answer1, FALLING); 
+// attachPinChangeInterrupt(answerButton2, answer2, FALLING); 
+// attachPinChangeInterrupt(answerButton3, answer3, FALLING); 
+// pinMode(answerButton1, OUTPUT); //set player buttons as inputs
+// pinMode(answerButton2, OUTPUT);
+// pinMode(answerButton3, OUTPUT);
 }
 
 void loop() {
+  if (RFIDValid == false){
   String sensorVal;
 // Look for new cards
   if ( ! rfid.PICC_IsNewCardPresent())
@@ -75,10 +93,9 @@ void loop() {
     nuidPICC[i] = rfid.uid.uidByte[i];
   }
 
-  TFTscreen.stroke(255,0,0); // Clears the previous text
-  TFTscreen.text(sensorPrintout, 10, 70); // Replaces the text with an empty string
-//  Serial.println(F("The NUID tag is:"));
-//  Serial.print(F("In hex: "));
+ // TFTscreen.stroke(255,0,0); // Clears the previous text
+ // TFTscreen.text(sensorPrintout, 10, 70); // Replaces the text with an empty string
+
   sensorVal = byteToStringArray(rfid.uid.uidByte, rfid.uid.size);
 
 
@@ -92,22 +109,61 @@ void loop() {
   
 
   sensorVal.toCharArray(sensorPrintout, 13); // Converts the string to a char array for display
-  TFTscreen.stroke(255,255,255);
-  TFTscreen.text(sensorPrintout, 10, 70);
+  //TFTscreen.stroke(255,255,255);
+  //TFTscreen.text(sensorPrintout, 10, 70);
   //Serial.println(sensorVal);
 
-  bool valid = false;
   for (String ID: validIDs) {
-    if (sensorVal == ID) valid = true;
+    if (sensorVal == ID) RFIDValid = true;
   }
-  if (valid)  tone(5, 3000, 500); // Correct tag
-  else tone(5, 100, 500); // Incorrect tag
-//  tone(5, 1750, 500); // Shows a tag has been read
-//  delay(1000);
- 
-//  delay(1000);
-//  tone(5, 100, 500); // Incorrect tag
+  if (RFIDValid){
 
+    TFTscreen.background(255, 0, 0);
+    TFTscreen.stroke(255,255,255);
+    TFTscreen.text("Access Granted", 5, 40); // Replaces the text with an empty string
+    mySerial.write("Dont Kill");
+    delay(1000);
+    TFTscreen.background(255, 0, 0);
+    TFTscreen.stroke(255,255,255); // Clears the previous text
+    TFTscreen.text("Whats The Password?", 5, 20); // Replaces the text with an empty string
+    TFTscreen.text("snow", 5, 40); // Replaces the text with an empty string
+    TFTscreen.text("angels", 5, 60); // Replaces the text with an empty string
+    TFTscreen.text("cookies", 5, 80); // Replaces the text with an empty string
+//    buttonsOn();
+      // commented out tone as was 5am tone(5, 3000, 500); // Correct tag
+  }else{
+    TFTscreen.background(255, 0, 0);
+    TFTscreen.stroke(255,255,255); // Clears the previous text
+    TFTscreen.text("Access Denied", 5, 40); // Replaces the text with an empty string
+    mySerial.write("Kill");
+    // commented out tone as was 5am  (5, 100, 500); // Incorrect tag
+  }
+  }else{
+   delay(100);
+//    if(questionAnswered == true){
+//      buttonsOff();
+//      if (questionRight == true){
+//        TFTscreen.background(255, 0, 0);
+//        TFTscreen.stroke(255,255,255); // Clears the previous text
+//        TFTscreen.text("Door Opened", 5, 40); // Replaces the text with an empty string
+//        //mySerial.write("Open door");
+//      }else{
+//        TFTscreen.background(255, 0, 0);
+//        TFTscreen.stroke(255,255,255); // Clears the previous text
+//        TFTscreen.text("Wrong Answer Try Again", 5, 40); // Replaces the text with an empty string
+//        delay(1000);
+//        TFTscreen.background(255, 0, 0);
+//        TFTscreen.stroke(255,255,255); // Clears the previous text
+//        TFTscreen.text("Whats The Password?", 5, 20); // Replaces the text with an empty string
+//        TFTscreen.text("snow", 5, 40); // Replaces the text with an empty string
+//        TFTscreen.text("angels", 5, 60); // Replaces the text with an empty string
+//        TFTscreen.text("cookies", 5, 80); // Replaces the text with an empty string
+//       // mySerial.write("kill");
+//        buttonsOn();
+//      }
+//      
+//    }
+   }
 }
 
 String byteToStringArray(byte *buffer, byte bufferSize) {
@@ -128,3 +184,27 @@ String intArrayToString(String *intArray, byte bufferSize){
     }
     return fullString;
 }
+//
+//void answer1() { //ISR for the answer 1 button
+// buttonsOff();
+//}
+//void answer2() { //ISR for the answer 2 button
+//  buttonsOff(); 
+//}
+//void answer3() { //ISR for the answer 3 button
+// buttonsOff(); 
+// questionRight = true;
+//}
+//void buttonsOff(){
+// pinMode(answerButton1, OUTPUT); //set player buttons as inputs
+// pinMode(answerButton2, OUTPUT);
+// pinMode(answerButton3, OUTPUT);
+// questionAnswered = true;
+//}
+//void buttonsOn(){
+// pinMode(answerButton1, INPUT); //set player buttons as inputs
+// pinMode(answerButton2, INPUT);
+// pinMode(answerButton3, INPUT);
+// questionAnswered = false;
+//
+//}
