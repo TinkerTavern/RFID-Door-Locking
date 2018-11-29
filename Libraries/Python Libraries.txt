@@ -1,0 +1,17 @@
+In order to get this program to fully work, you need to install a few libraries:
+
+For arduino, the RFID library needs to be installed. This can be installed by opening the arduino IDE
+Going to sketch
+Selecting include library
+Selecting the rfid-master.zip file
+Then, when calling it, you use #include <MFRC522.h>
+
+
+For Python
+1) OpenCV-Python needs to be installed for the face detection. Once it is, you can call it using import cv2
+2) PySerial needs to be installed for the PC to arduino comms. Once it is, you can call it using import serial
+
+To install a python library:
+If you have set up pip in your PATH, you can simply run pip3 install #LIBRARY NAME#
+If you don't, then you need to navigate to your python install folder, then to scripts. 
+From there, you can run the same pip command.
