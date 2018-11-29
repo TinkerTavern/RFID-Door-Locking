@@ -16,7 +16,7 @@ void setup() {
 
 void loop() {
   digitalWrite(LED_BUILTIN, LOW);
-  delay(500);
+  delay(10);
 
   if (mySerial.available()) {
     while (mySerial.available()) {
@@ -29,7 +29,7 @@ void loop() {
     if (test.length() > 0) {
       Serial.println(test); //prints string to serial port out
       testUID(test);
-      //test = ""; //clears variable for new input
+      test = ""; //clears variable for new input
     }
   }
 
@@ -39,14 +39,14 @@ void loop() {
 void testUID(String ID) {
   bool valid = false;
   for (String testID: validIDs) {
-    if (ID == testID) valid = true;
+    if (ID == testID) {
+      valid = true;
+    }
   }
   if (valid) {
-    //Serial.println("t");
     mySerial.write("t"); // Doesn't send t the first time for some reason??
   }
   else {
-    //Serial.println("f");
     mySerial.write("f");
   }
 }

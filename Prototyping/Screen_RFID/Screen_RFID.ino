@@ -62,7 +62,7 @@ void setup() {
 }
 
 void loop() {
-  if (RFIDValid != "t"){
+  if (RFIDValid == "f"){
   String sensorVal;
 // Look for new cards
   if ( ! rfid.PICC_IsNewCardPresent())
@@ -104,15 +104,10 @@ void loop() {
   //Serial.println(sensorVal);
   
   sensorVal.toCharArray(sensorPrintout, 13); // Converts the string to a char array for display
-  //TFTscreen.stroke(255,255,255);
-  //TFTscreen.text(sensorPrintout, 10, 70);
-  //Serial.println(sensorVal);
   mySerial.write(sensorPrintout); // Sends the RFID tag for verification
+  delay(200); // Delay to ensure the slave's response is finished before checking
   RFIDValid = recieveCommand();
-  Serial.println(RFIDValid);
-//  for (String ID: validIDs) {
-//    if (sensorVal == ID) RFIDValid = true;
-//  }
+
   if (RFIDValid == "t"){
     TFTscreen.background(255, 0, 0);
     TFTscreen.stroke(255,255,255);
@@ -144,6 +139,7 @@ void loop() {
         TFTscreen.stroke(255,255,255); // Clears the previous text
         TFTscreen.text("Door Opened", 5, 40); // Replaces the text with an empty string
         //mySerial.write("Open door");
+        restartProgram();
       }else{
         TFTscreen.background(255, 0, 0);
         TFTscreen.stroke(255,255,255); // Clears the previous text
@@ -204,10 +200,8 @@ void buttonsOn(){
 
 String recieveCommand() {
     String command;
-    delay(100); // Perhaps a delay would help?
+    delay(100); //
     if (mySerial.available()) {
-    while (mySerial.available()) {
-      delay(10);  //small delay to allow input buffer to fill
 
       char c = mySerial.read();  //gets one byte from serial buffer
       command += c;
@@ -219,5 +213,14 @@ String recieveCommand() {
       return command; // Returns t or f
     }
     else return "f"; // Returns f if nothing found
-  }
+  //}
+}
+
+
+void restartProgram() {
+  RFIDValid = "f";
+  questionRight = false;
+  questionAnswered = false;
+  delay(5000);
+  setup();
 }

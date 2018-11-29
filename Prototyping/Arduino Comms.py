@@ -2,16 +2,17 @@ import cv2
 import sys
 import serial
 import time
+
 cascPath = "data/haarcascade_frontalface_alt.xml"#sys.argv[1]
 faceCascade = cv2.CascadeClassifier(cascPath)
 
 video_capture = cv2.VideoCapture(0)
 
 ser = serial.Serial('com3', 9600) # USB Serial for arduino
-time.sleep(2)
+time.sleep(2000)
 
 counter = 0
-limit = 30
+limit = 50
 
 while True:
     found = False
@@ -30,7 +31,7 @@ while True:
     
     # Draw a rectangle around the faces
     for (x, y, width, height) in faces:
-        cv2.rectangle(frame, (x, y), (x + width, y + height), (255, 0, 255), 2)
+        cv2.rectangle(frame, (x, y), (x + width, y + height), (255, 0, 255), 2) # Maybe different colours?
         if width > 100:
             counter += 1
             if counter > limit:
@@ -43,6 +44,8 @@ while True:
     
     if found:
         ser.write(b"1")
+        counter = 0
+        found = False
         
     if len(faces) == 0:
         counter = 0
