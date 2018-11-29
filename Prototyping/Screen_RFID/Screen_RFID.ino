@@ -4,7 +4,6 @@
 #include <SPI.h>
 #include <MFRC522.h>
 // button interrupt library
-//#include <PinChangeInt.h>
 //int answerButton3 = A0;
 //int answerButton2 = A1;
 //int answerButton1 = A2;
@@ -14,7 +13,7 @@
 //bluetooth libraries
 #include <SoftwareSerial.h>
 //initializing bluetooth connection
-SoftwareSerial mySerial(2, 3); 
+SoftwareSerial mySerial(4, 5); 
 // TFT Screen pins, configured to be different
 #define cs   8
 #define dc   7
@@ -122,6 +121,7 @@ void loop() {
     TFTscreen.stroke(255,255,255);
     TFTscreen.text("Access Granted", 5, 40); // Replaces the text with an empty string
     mySerial.write("Dont Kill");
+    tone(A0, 3000, 500); // Correct tag
     delay(1000);
     TFTscreen.background(255, 0, 0);
     TFTscreen.stroke(255,255,255); // Clears the previous text
@@ -130,13 +130,13 @@ void loop() {
     TFTscreen.text("angels", 5, 60); // Replaces the text with an empty string
     TFTscreen.text("cookies", 5, 80); // Replaces the text with an empty string
 //    buttonsOn();
-      // commented out tone as was 5am tone(5, 3000, 500); // Correct tag
+
   }else{
     TFTscreen.background(255, 0, 0);
     TFTscreen.stroke(255,255,255); // Clears the previous text
     TFTscreen.text("Access Denied", 5, 40); // Replaces the text with an empty string
     mySerial.write("Kill");
-    // commented out tone as was 5am  (5, 100, 500); // Incorrect tag
+    tone(A0, 100, 500); // Incorrect tag
   }
   }else{
    delay(100);
