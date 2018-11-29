@@ -21,7 +21,7 @@ SoftwareSerial mySerial(4, 5);
 #define RST_PIN         9           
 #define SS_PIN          10       
 
-bool RFIDValid = false;
+String RFIDValid = "f";
 bool questionRight = false;
 bool questionAnswered = false;
 
@@ -36,7 +36,6 @@ byte nuidPICC[4];
 
 char sensorPrintout[13];
 
-String validIDs[2] = {"1d 53 fe 9c ","bd a5 0 9d "};
 
 void setup() {
   TFTscreen.begin();
@@ -63,7 +62,7 @@ void setup() {
 }
 
 void loop() {
-  if (RFIDValid == false){
+  if (RFIDValid != "t"){
   String sensorVal;
 // Look for new cards
   if ( ! rfid.PICC_IsNewCardPresent())
@@ -104,21 +103,21 @@ void loop() {
 
   //Serial.println(sensorVal);
   
-
   sensorVal.toCharArray(sensorPrintout, 13); // Converts the string to a char array for display
   //TFTscreen.stroke(255,255,255);
   //TFTscreen.text(sensorPrintout, 10, 70);
   //Serial.println(sensorVal);
-
-  for (String ID: validIDs) {
-    if (sensorVal == ID) RFIDValid = true;
-  }
-  if (RFIDValid){
-
+  mySerial.write(sensorPrintout); // Sends the RFID tag for verification
+  RFIDValid = recieveCommand();
+  Serial.println(RFIDValid);
+//  for (String ID: validIDs) {
+//    if (sensorVal == ID) RFIDValid = true;
+//  }
+  if (RFIDValid == "t"){
     TFTscreen.background(255, 0, 0);
     TFTscreen.stroke(255,255,255);
     TFTscreen.text("Access Granted", 5, 40); // Replaces the text with an empty string
-    mySerial.write("Dont Kill");
+    //mySerial.write("Dont Kill");
     tone(A0, 3000, 500); // Correct tag
     delay(1000);
     TFTscreen.background(255, 0, 0);
@@ -133,7 +132,7 @@ void loop() {
     TFTscreen.background(255, 0, 0);
     TFTscreen.stroke(255,255,255); // Clears the previous text
     TFTscreen.text("Access Denied", 5, 40); // Replaces the text with an empty string
-    mySerial.write("Kill");
+    //mySerial.write("Kill");
     tone(A0, 100, 500); // Incorrect tag
   }
   }else{
@@ -187,7 +186,8 @@ void answer1() { //ISR for the answer 1 button
  buttonsOff();
 }
 void answer2() { //ISR for the answer 2 button
-  buttonsOff(); 
+  buttonsOff();
+  questionRight = true;
 }
 void buttonsOff(){
  pinMode(answerButton1, OUTPUT); //set player buttons as inputs
@@ -199,4 +199,25 @@ void buttonsOn(){
  pinMode(answerButton2, INPUT);
  questionAnswered = false;
 
+}
+
+
+String recieveCommand() {
+    String command;
+    delay(100); // Perhaps a delay would help?
+    if (mySerial.available()) {
+    while (mySerial.available()) {
+      delay(10);  //small delay to allow input buffer to fill
+
+      char c = mySerial.read();  //gets one byte from serial buffer
+      command += c;
+    } //makes the string readString
+
+    if (command.length() > 0) {
+      //Serial.println(test); //prints string to serial port out
+      //test = ""; //clears variable for new input
+      return command; // Returns t or f
+    }
+    else return "f"; // Returns f if nothing found
+  }
 }
