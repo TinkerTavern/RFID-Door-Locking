@@ -10,12 +10,10 @@ void setup() {
   Serial.begin(9600);
   mySerial.begin(38400);
 
-  //mySerial.println("testSlave");
-  //pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
-  digitalWrite(LED_BUILTIN, LOW);
+  test = ""; //clears variable for new input
   delay(10);
 
   if (mySerial.available()) {
@@ -26,9 +24,16 @@ void loop() {
       test += c;
     } //makes the string readString
 
-    if (test.length() > 0) {
+    if (test.length() > 9) {
       testUID(test);
-      test = ""; //clears variable for new input
+    }
+    else{
+      if (test== "00101010"){
+        mySerial.write("t");
+      }
+      else{
+        mySerial.write("f");
+      }
     }
   }
 

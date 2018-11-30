@@ -22,8 +22,7 @@ SoftwareSerial mySerial(4, 5);
 #define SS_PIN          10       
 
 String RFIDValid = "f";
-bool questionRight = false;
-bool questionAnswered = false;
+String binaryAnswer = "";
 
 TFT TFTscreen = TFT(cs, dc, rst);
 
@@ -56,7 +55,7 @@ void setup() {
 
   TFTscreen.background(255, 0, 0);
   TFTscreen.stroke(255,255,255);
-  TFTscreen.text("Please scan RFID card", 5, 40); // Replaces the text with an empty string
+  TFTscreen.text("Waiting for face", 5, 40); // Replaces the text with an empty string
 }
 
 void detectFace() {
@@ -75,7 +74,12 @@ void loop() {
       } //makes the string readString
     
     if (newString.length() > 0) {
-      if (newString == "True") faceDetected = true;
+      if (newString == "True"){
+        faceDetected = true;
+        TFTscreen.background(255, 0, 0);
+        TFTscreen.stroke(255,255,255);
+        TFTscreen.text("Please scan RFID card", 5, 40); // Replaces the text with an empty string
+      }
     }
   }
   }
@@ -131,14 +135,13 @@ void loop() {
     TFTscreen.stroke(255,255,255);
     TFTscreen.text("Access Granted", 5, 40); // Replaces the text with an empty string
     //mySerial.write("Dont Kill");
-    tone(A0, 3000, 500); // Correct tag
+    //tone(A0, 3000, 500); // Correct tag
     delay(1000);
     TFTscreen.background(255, 0, 0);
     TFTscreen.stroke(255,255,255); // Clears the previous text
-    TFTscreen.text("Whats The Password?", 5, 20); // Replaces the text with an empty string
-    TFTscreen.text("snow", 5, 40); // Replaces the text with an empty string
-    TFTscreen.text("angels", 5, 60); // Replaces the text with an empty string
-    TFTscreen.text("cookies", 5, 80); // Replaces the text with an empty string
+    TFTscreen.text("What is the answer to the universe?", 5, 20); // Replaces the text with an empty string
+    TFTscreen.text("1", 5, 40); // Replaces the text with an empty string
+    TFTscreen.text("0", 5, 60); // Replaces the text with an empty string
     buttonsOn();
 
   }else{
@@ -146,34 +149,48 @@ void loop() {
     TFTscreen.stroke(255,255,255); // Clears the previous text
     TFTscreen.text("Access Denied", 5, 40); // Replaces the text with an empty string
     //mySerial.write("Kill");
-    tone(A0, 100, 500); // Incorrect tag
+    //tone(A0, 100, 500); // Incorrect tag
   }
   }else{
-   delay(100);
-    if(questionAnswered == true){
-      buttonsOff();
-      if (questionRight == true){
+   delay(10);
+    if (binaryAnswer.length() == 8){
+//      String Answer="";
+
+      char Answer[8];
+      for(int i = 0 ; i < 8; i++){
+        Answer[i] = binaryAnswer.charAt(i);
+        Answer[i+1] = '\0';
+      }
+      Serial.println(Answer);
+      mySerial.write(Answer);
+      delay(300);
+    }
+   
+    if(mySerial.available()){ 
+      String result = recieveCommand();
+      binaryAnswer = "";
+      if (result == "t"){
         TFTscreen.background(255, 0, 0);
         TFTscreen.stroke(255,255,255); // Clears the previous text
         TFTscreen.text("Door Opened", 5, 40); // Replaces the text with an empty string
-        //mySerial.write("Open door");
         restartProgram();
       }else{
+        binaryAnswer = "";
         TFTscreen.background(255, 0, 0);
         TFTscreen.stroke(255,255,255); // Clears the previous text
         TFTscreen.text("Wrong Answer Try Again", 5, 40); // Replaces the text with an empty string
         delay(1000);
         TFTscreen.background(255, 0, 0);
         TFTscreen.stroke(255,255,255); // Clears the previous text
-        TFTscreen.text("Whats The Password?", 5, 20); // Replaces the text with an empty string
-        TFTscreen.text("snow", 5, 40); // Replaces the text with an empty string
-        TFTscreen.text("angels", 5, 60); // Replaces the text with an empty string
-        TFTscreen.text("cookies", 5, 80); // Replaces the text with an empty string
+        TFTscreen.text("What is the answer to the universe?", 5, 20); // Replaces the text with an empty string
+        TFTscreen.text("1", 5, 40); // Replaces the text with an empty string
+        TFTscreen.text("0", 5, 60); // Replaces the text with an empty string
        // mySerial.write("kill");
-        buttonsOn();
       }
-      
     }
+    
+        buttonsOn();
+    
    }
   }
 }
@@ -189,8 +206,7 @@ String byteToStringArray(byte *buffer, byte bufferSize) {
 
 
 String intArrayToString(String *intArray, byte bufferSize){
-//    String numbers[4];
-//    for (int j=0; j < bufferSize; j++) numbers[j] = String(buffer[j], HEX);
+
     String fullString;
     for (int j=0; j < bufferSize; j++) {
       fullString.concat(intArray[j]);
@@ -198,24 +214,21 @@ String intArrayToString(String *intArray, byte bufferSize){
     }
     return fullString;
 }
-
 void answer1() { //ISR for the answer 1 button
  buttonsOff();
+ binaryAnswer+= "1";
 }
 void answer2() { //ISR for the answer 2 button
-  buttonsOff();
-  questionRight = true;
+ buttonsOff(); 
+ binaryAnswer+= "0";
 }
 void buttonsOff(){
- pinMode(answerButton1, OUTPUT); //set player buttons as inputs
+ pinMode(answerButton1, OUTPUT); //set player buttons as outputs
  pinMode(answerButton2, OUTPUT);
- questionAnswered = true;
 }
 void buttonsOn(){
  pinMode(answerButton1, INPUT); //set player buttons as inputs
  pinMode(answerButton2, INPUT);
- questionAnswered = false;
-
 }
 
 
@@ -238,8 +251,7 @@ String recieveCommand() {
 
 void restartProgram() {
   RFIDValid = "f";
-  questionRight = false;
-  questionAnswered = false;
+  binaryAnswer = "";
   faceDetected = false;
   delay(1000); // 5000 in final product
   setup();
