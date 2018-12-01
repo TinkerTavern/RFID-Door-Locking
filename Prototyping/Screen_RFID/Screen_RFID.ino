@@ -1,4 +1,4 @@
-
+#include <millisDelay.h>
 
 // RFID Libraries
 #include <SPI.h>
@@ -30,11 +30,15 @@ MFRC522 rfid(SS_PIN, RST_PIN);   // Create MFRC522 instance.
 
 MFRC522::MIFARE_Key key;
 
+millisDelay timer;
 // Init array that will store new NUID 
 byte nuidPICC[4];
 
 char sensorPrintout[13];
 bool faceDetected = false;
+String timeRemaining;
+int invalidRFID = 0;
+int invalidPassword = 0;
 
 void setup() {
   TFTscreen.begin();
@@ -56,10 +60,8 @@ void setup() {
   TFTscreen.background(255, 0, 0);
   TFTscreen.stroke(255,255,255);
   TFTscreen.text("Waiting for face", 5, 40); // Replaces the text with an empty string
-}
-
-void detectFace() {
-  
+//  timer.start(30000);
+//  updateTimer();
 }
 
 
@@ -79,11 +81,17 @@ void loop() {
         TFTscreen.background(255, 0, 0);
         TFTscreen.stroke(255,255,255);
         TFTscreen.text("Please scan RFID card", 5, 40); // Replaces the text with an empty string
+        if (!timer.isRunning()) timer.start(30000);
+        if (timer.isRunning()) timer.restart();
+        //timer.restart();
+        updateTimer();
       }
     }
   }
   }
   else {
+  checkTimer();
+  updateTimer();
   if (RFIDValid == "f"){
   String sensorVal;
 // Look for new cards
@@ -134,22 +142,21 @@ void loop() {
     TFTscreen.background(255, 0, 0);
     TFTscreen.stroke(255,255,255);
     TFTscreen.text("Access Granted", 5, 40); // Replaces the text with an empty string
+    updateScreen("Access Granted",14 , 5, 40);
     //mySerial.write("Dont Kill");
-    //tone(A0, 3000, 500); // Correct tag
+    tone(A0, 3000, 500); // Correct tag
     delay(1000);
-    TFTscreen.background(255, 0, 0);
-    TFTscreen.stroke(255,255,255); // Clears the previous text
-    TFTscreen.text("What is the answer to the universe?", 5, 20); // Replaces the text with an empty string
+    checkTimer();
+    updateScreen("What is the answer to the universe?",35 , 5, 20);
     TFTscreen.text("1", 5, 40); // Replaces the text with an empty string
     TFTscreen.text("0", 5, 60); // Replaces the text with an empty string
     buttonsOn();
 
   }else{
-    TFTscreen.background(255, 0, 0);
-    TFTscreen.stroke(255,255,255); // Clears the previous text
-    TFTscreen.text("Access Denied", 5, 40); // Replaces the text with an empty string
+    updateScreen("Access Denied",13 , 5, 40);
     //mySerial.write("Kill");
-    //tone(A0, 100, 500); // Incorrect tag
+    tone(A0, 100, 500); // Incorrect tag
+    invalidRFID++;
   }
   }else{
    delay(10);
@@ -170,21 +177,24 @@ void loop() {
       String result = recieveCommand();
       binaryAnswer = "";
       if (result == "t"){
-        TFTscreen.background(255, 0, 0);
-        TFTscreen.stroke(255,255,255); // Clears the previous text
-        TFTscreen.text("Door Opened", 5, 40); // Replaces the text with an empty string
+        updateScreen("Door Opened",11 , 5, 40);
+        delay(500);
+        tone(A0, 300, 500);
+        delay(200);
+        tone(A0, 900, 500);
+        delay(200);
+        tone(A0, 1200, 500);
         restartProgram();
       }else{
-        binaryAnswer = "";
-        TFTscreen.background(255, 0, 0);
-        TFTscreen.stroke(255,255,255); // Clears the previous text
-        TFTscreen.text("Wrong Answer Try Again", 5, 40); // Replaces the text with an empty string
         delay(1000);
-        TFTscreen.background(255, 0, 0);
-        TFTscreen.stroke(255,255,255); // Clears the previous text
-        TFTscreen.text("What is the answer to the universe?", 5, 20); // Replaces the text with an empty string
-        TFTscreen.text("1", 5, 40); // Replaces the text with an empty string
-        TFTscreen.text("0", 5, 60); // Replaces the text with an empty string
+        binaryAnswer = "";
+        updateScreen("Wrong Answer! Try Again",23 , 5, 40);
+        invalidPassword ++;
+        delay(1000);
+        updateScreen("What is the answer to the universe?",35 , 5, 20);
+        TFTscreen.text("1", 50, 40); // Replaces the text with an empty string
+        TFTscreen.text("0", 50, 60); // Replaces the text with an empty string
+        binaryAnswer = "";
        // mySerial.write("kill");
       }
     }
@@ -248,11 +258,47 @@ String recieveCommand() {
     else return "f"; // Returns f if nothing found
 }
 
+void updateTimer() {
+  char buff[5];
+  TFTscreen.fill(255, 0, 0);
+  TFTscreen.stroke(255,0,0);
+  TFTscreen.rect(0,0,TFTscreen.width(),20);
+  timeRemaining= String(timer.remaining()/1000);
+  timeRemaining.toCharArray(buff, 5);
+  TFTscreen.setTextSize(2);
+  TFTscreen.stroke(255,255,255);
+  TFTscreen.text(buff,0,0);
+  TFTscreen.setTextSize(1);
+}
+
+void checkTimer() {
+  bool timerCheck = timer.isFinished();
+  if (timerCheck || invalidRFID > 2 || invalidPassword > 2) {
+    for (int i=0; i<10; i++) {
+      tone(A0, 2000, 500);
+      delay(200);
+      tone(A0, 3000, 500);
+      delay(200);
+    }
+    updateScreen("INTRUDER ALERT!!!!!!", 20, 5, 20);
+    restartProgram();
+  }
+}
+
+void updateScreen(String text, int textLen, int x, int y) {
+  TFTscreen.background(255, 0, 0);
+  TFTscreen.stroke(255,255,255); // Clears the previous text
+  char buf[textLen];
+  text.toCharArray(buf, textLen);
+  TFTscreen.text(buf, x, y);
+}
 
 void restartProgram() {
   RFIDValid = "f";
   binaryAnswer = "";
   faceDetected = false;
+  invalidRFID = 0;
+  invalidPassword = 0;
   delay(1000); // 5000 in final product
   setup();
 }

@@ -23,7 +23,7 @@ void loop() {
       char c = mySerial.read();  //gets one byte from serial buffer
       test += c;
     } //makes the string readString
-
+    Serial.println(test);
     if (test.length() > 9) {
       testUID(test);
     }

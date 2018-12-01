@@ -46,8 +46,8 @@ while True:
         ser.write(b"True")
         counter = 0
         found = False
-        time.sleep(60)
-        #print(ser.readline())
+        #time.sleep(30)
+        #print("True")
         
     if len(faces) == 0:
         counter = 0

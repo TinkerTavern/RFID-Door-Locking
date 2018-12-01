@@ -1,15 +1,15 @@
 ## To Do List ##
 
-~ Change question to "What is the answer to the universe" (42 in binary); J
+~ Change question to "What is the answer to the universe" (42 in binary); J DONE
 ~ Get a timer working (possibly show on the screen); J
 ~ Get face detection to link to arduino; T DONE
-~ Reset program on win; TJ
-~ Get bubble boi to work; T
-~ Function for LCD Screen output (removing duplicate code); J
+~ Reset program on win; TJ DONE
+~ Get bubble boi to work; T 
+~ Function for LCD Screen output (removing duplicate code); J DONE? Could be better
 ~ Clean code; TJ
-~ Add new mode to slave for question mode; J
-~ Make the master play a tune when door unlocked; T
-~ Make an alarm when timer runs out/incorrect entry; T
+~ Add new mode to slave for question mode; J DONE
+~ Make the master play a tune when door unlocked; T DONE
+~ Make an alarm when timer runs out/incorrect entry; T DONE
 
 
 
