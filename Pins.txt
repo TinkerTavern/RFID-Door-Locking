@@ -9,3 +9,12 @@ A4/A5- LED's
 
 ICSP Pins
 3/4- Screen
+
+~ Red: 3/5V
+~ Black: GND
+~ Orange: RX/TX Comms
+~ Blue: RFID Scanner
+~ Yellow: MSI
+~ Gray: MSO
+~ Green: Screen
+~ White: Piezo, Buttons and Bubble Boi
