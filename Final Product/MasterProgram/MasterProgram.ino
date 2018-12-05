@@ -295,20 +295,15 @@ String recieveCommand() {
 // Update the timer function, this updates the timer on the led screen
 void updateTimer() {
   char buff[5];
-
-  int timeBuffer = timer.remaining() % 1000;
-  if (timeBuffer < 150) {
-    TFTscreen.fill(255, 0, 0);
-    TFTscreen.stroke(255, 0, 0);
-    TFTscreen.rect(0, 0, TFTscreen.width(), 20);
-    timeRemaining = String(timer.remaining() / 1000);
-    timeRemaining.toCharArray(buff, 5);
-    TFTscreen.setTextSize(2);
-    TFTscreen.stroke(255, 255, 255);
-    TFTscreen.text(buff, 0, 0);
-    TFTscreen.setTextSize(1);
-  }
-
+  TFTscreen.fill(255, 0, 0);
+  TFTscreen.stroke(255, 0, 0);
+  TFTscreen.rect(0, 0, TFTscreen.width(), 20);
+  timeRemaining = String(timer.remaining() / 1000);
+  timeRemaining.toCharArray(buff, 5);
+  TFTscreen.setTextSize(2);
+  TFTscreen.stroke(255, 255, 255);
+  TFTscreen.text(buff, 0, 0);
+  TFTscreen.setTextSize(1);
 }
 
 // Function to check if the time is up
