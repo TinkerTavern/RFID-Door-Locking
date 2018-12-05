@@ -1,3 +1,9 @@
+//importing servo library
+#include <Servo.h>
+//initializing servo
+Servo doorLock;
+int pos = 0;
+
 #include <millisDelay.h>
 // RFID Libraries
 #include <MFRC522.h>
@@ -41,15 +47,15 @@ bool buttonsPressed = true; //starts as true as we dont want the user to use but
 // Setup function initializing variables and starting connections.
 void setup() {
   TFTscreen.begin();
-
+  doorLock.attach(A5);
   mySerial.begin(38400);
   Serial.begin(9600); // Initialize serial communications with the PC
   while (!Serial);    // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
   SPI.begin();        // Init SPI bus
   rfid.PCD_Init(); // Init MFRC522
-//  for (byte i = 0; i < 6; i++) {
-//    key.keyByte[i] = 0xFF;
-//  }
+//    for (byte i = 0; i < 6; i++) {
+//      key.keyByte[i] = 0xFF;
+//    }
   attachInterrupt(0, answer1, FALLING); // Specifying which interrupt pins correspond to which pin, and specifying the ISRs
   attachInterrupt(1, answer2, FALLING);
 
@@ -66,26 +72,29 @@ void loop() {
   // Checking if a face has been detected from the slave arduino
   if (!faceDetected) {
     String newString;
-    if (Serial.available()) {
-    while (Serial.available()) {
-      delay(10);  // Small delay to allow input buffer to fill
-      char c = Serial.read();  // Gets one byte from serial buffer
-      newString += c;
-    } // Makes the string readString
-    // If a face has been detected, start the timer
-    if (newString.length() > 0) {
-      if (newString == "True") {
-        faceDetected = true;
-        TFTscreen.background(255, 0, 0);
-        TFTscreen.stroke(255, 255, 255);
-        TFTscreen.text("Please scan RFID card", 5, 40); // Replaces the text with an empty string
-        if (!timer.isRunning()) timer.start(30000);
-        if (timer.isRunning()) timer.restart();
+    newString = "True";
+    //if (Serial.available()) {
+      while (Serial.available()) {
+        delay(10);  // Small delay to allow input buffer to fill
+        char c = Serial.read();  // Gets one byte from serial buffer
+        newString += c;
+      } // Makes the string readString
+      // If a face has been detected, start the timer
+      if (newString.length() > 0) {
+        if (newString == "True") {
+          tone(A0, 3000, 500); // Correct tag noise
+         
+          faceDetected = true;
+          TFTscreen.background(255, 0, 0);
+          TFTscreen.stroke(255, 255, 255);
+          TFTscreen.text("Please scan RFID card", 5, 40); // Replaces the text with an empty string
+          if (!timer.isRunning()) timer.start(30000);
+          if (timer.isRunning()) timer.restart();
 
-        updateTimer();
-      }
+          updateTimer();
+        }
+   //   }
     }
-  }
   }
   // Check the timer to see if it has run out, if not then update said timer.
   else {
@@ -102,14 +111,14 @@ void loop() {
       if ( ! rfid.PICC_ReadCardSerial())
         return;
 
-//      MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
-//
-//      // Check is the PICC of Classic MIFARE type
-//      if (piccType != MFRC522::PICC_TYPE_MIFARE_MINI &&
-//          piccType != MFRC522::PICC_TYPE_MIFARE_1K &&
-//          piccType != MFRC522::PICC_TYPE_MIFARE_4K) {
-//        return;
-//      }
+//            MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
+//      
+//            // Check is the PICC of Classic MIFARE type
+//            if (piccType != MFRC522::PICC_TYPE_MIFARE_MINI &&
+//                piccType != MFRC522::PICC_TYPE_MIFARE_1K &&
+//                piccType != MFRC522::PICC_TYPE_MIFARE_4K) {
+//              return;
+//            }
 
       // Store NUID into nuidPICC array
       for (byte i = 0; i < 4; i++) {
@@ -136,9 +145,10 @@ void loop() {
         tone(A0, 3000, 500); // Correct tag noise
         delay(1000);
         checkTimer(); // Checking if the time is up
-        updateScreen("What is the answer to the universe?", 37, 5, 20);
-        TFTscreen.text("1", 5, 40); // Adding the button values onto the screen
-        TFTscreen.text("0", 5, 60);
+       updateScreen("What is the answer ", 21 , 5, 20);
+          TFTscreen.text("to the universe?", 5, 40);
+          TFTscreen.text("1", 50, 60); // Replaces the text with an empty string
+          TFTscreen.text("0", 50, 80); // Replaces the text with an empty string
         buttonsPressed = false;
 
       }
@@ -179,6 +189,10 @@ void loop() {
         // If the slave returned true then the "door" will be opened
         // A nice tune will also be played and the program will restart after some time
         if (result == "t") {
+          for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
+            doorLock.write(pos);              // tell servo to go to position in variable 'pos'
+            delay(2);                       // waits 15ms for the servo to reach the position
+          }
           updateScreen("Door Opened", 12, 5 , 40);
           delay(500);
           tone(A0, 300, 500);
@@ -187,6 +201,10 @@ void loop() {
           delay(200);
           tone(A0, 1200, 500);
           restartProgram();
+          for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
+            doorLock.write(pos);              // tell servo to go to position in variable 'pos'
+            delay(2);                       // waits 15ms for the servo to reach the position
+          }
         }
         else if (result == "r") {
           // If the return was "r" restart the program after the alarm is turned on
@@ -201,9 +219,10 @@ void loop() {
           updateScreen("Wrong Answer! Try Again", 25, 5, 40);
           delay(1000);
           // Re-writing the screen
-          updateScreen("What is the answer to the universe?", 37 , 5, 20);
-          TFTscreen.text("1", 50, 40); // Replaces the text with an empty string
-          TFTscreen.text("0", 50, 60); // Replaces the text with an empty string
+          updateScreen("What is the answer ", 21 , 5, 20);
+          TFTscreen.text("to the universe?", 50, 40);
+          TFTscreen.text("1", 50, 60); // Replaces the text with an empty string
+          TFTscreen.text("0", 50, 80); // Replaces the text with an empty string
           binaryAnswer = "";
         }
 
@@ -277,15 +296,20 @@ String recieveCommand() {
 // Update the timer function, this updates the timer on the led screen
 void updateTimer() {
   char buff[5];
-  TFTscreen.fill(255, 0, 0);
-  TFTscreen.stroke(255, 0, 0);
-  TFTscreen.rect(0, 0, TFTscreen.width(), 20);
-  timeRemaining = String(timer.remaining() / 1000);
-  timeRemaining.toCharArray(buff, 5);
-  TFTscreen.setTextSize(2);
-  TFTscreen.stroke(255, 255, 255);
-  TFTscreen.text(buff, 0, 0);
-  TFTscreen.setTextSize(1);
+
+  int timeBuffer = timer.remaining() % 1000;
+  if (timeBuffer < 150) {
+    TFTscreen.fill(255, 0, 0);
+    TFTscreen.stroke(255, 0, 0);
+    TFTscreen.rect(0, 0, TFTscreen.width(), 20);
+    timeRemaining = String(timer.remaining() / 1000);
+    timeRemaining.toCharArray(buff, 5);
+    TFTscreen.setTextSize(2);
+    TFTscreen.stroke(255, 255, 255);
+    TFTscreen.text(buff, 0, 0);
+    TFTscreen.setTextSize(1);
+  }
+
 }
 
 // Function to check if the time is up
@@ -302,6 +326,7 @@ void checkTimer() {
 // Triggers the alarm by showing text on the screen and triggering the piezo speaker
 void startAlarm() {
   // Update the screen
+  mySerial.write("b");
   updateScreen("INTRUDER ALERT!!!!!!", 22, 5, 20);
   for (int i = 0; i < 10; i++) {
     tone(A0, 2000, 500);

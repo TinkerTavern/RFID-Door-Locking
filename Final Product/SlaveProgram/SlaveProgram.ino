@@ -1,4 +1,35 @@
+/* Slave Arduino:
+  To start connect
+  5v ---> EN
+  Rx ---> Rx
+  Tx ---> Tx
+  Send empty sketch to arduino (with Rx/Tx disconnected)
+  As arduino starts up hold button on side of arduino
+  Open Serial monitor at 38400 Baud and both NL & CR
+Commands Sent:
+  AT + UART --- this should show 38400
+  AT + ROLE? --- this should show 0
+  AT + ADDR? -- should give an address, save this for master
 
+Master Arduino:
+  To start connect
+  5v ---> EN
+  Rx ---> Rx
+  Tx ---> Tx
+  Send empty sketch to arduino (with Rx/Tx disconnected)
+  As arduino starts up hold button on side of arduino
+  Open Serial monitor at 38400 Baud and both NL & CR
+Commands Sent:
+  AT + UART --- this should show 38400
+  AT + ROLE = 1 --- this should show "ok" and will set it to master
+  AT + CMODE = 0 --- connect mode to fixed address
+  AT + BIND = Address --- address seperated by commas not colons
+        this is attaching the address to be connected to 
+
+now when done disconnect 5v ---> EN 
+       connect RX and TX on module to pins you want on arduino */
+
+       
 // Including the library for soft serial
 #include <SoftwareSerial.h>
 SoftwareSerial mySerial(2, 3); // RX, TX Pins for the HC-05 modules
@@ -12,7 +43,7 @@ void setup() {
   // Establish connections
   Serial.begin(9600);
   mySerial.begin(38400);
-
+  pinMode(5, OUTPUT);
 }
 
 void loop() {
@@ -29,6 +60,9 @@ void loop() {
     } // Makes the string readString
   Serial.println(input);
    // If the input length > 9 then it is for the RFID. therefor check the RDIF UID
+    if (input == "b" ){
+      activateBubbleMachine();
+    }
     if (input.length() > 9) {
       testUID(input);
     }
@@ -74,6 +108,7 @@ void returnFalse(){
   if ((RFIDWrong > 2) || (questionWrong > 2)){
     RFIDWrong = 0;
     questionWrong = 0;
+   
     mySerial.write("r");
             Serial.println("r");
   }
@@ -81,4 +116,11 @@ void returnFalse(){
     mySerial.write("f");
             Serial.println("f");
   }
+}
+
+
+void activateBubbleMachine() {
+  digitalWrite(5, HIGH);
+  delay(7000);
+  digitalWrite(5, LOW);
 }
