@@ -32,87 +32,94 @@ now when done disconnect 5v ---> EN
        
 // Including the library for soft serial
 #include <SoftwareSerial.h>
-SoftwareSerial mySerial(2, 3); // RX, TX Pins for the HC-05 modules
+SoftwareSerial mySerial(2, 3); // RX, TX Pins for the HC-05 module
 // Initializing variables
-String input; // To store the input
-String validIDs[2] = {"1d 53 fe 9c ","bd a5 0 9d "}; // The valid RDIF UIDs
+String input; // To store the input from the master
+String validIDs[2] = {"1d 53 fe 9c ","bd a5 0 9d "}; // The valid RDIF UIDs (our library cards)
 int RFIDWrong = 0; // How many times the RFID has been scanned wrong
 int questionWrong = 0; // Jow many times the question has been answered wrong
 
+
+// This is setup , this runs when the arduino turns on and sets up the connecton 
 void setup() {
   // Establish connections
-  Serial.begin(9600);
   mySerial.begin(38400);
+  //setting the pin for the bubble machine
   pinMode(5, OUTPUT);
 }
 
+
+// This is the main loop which the program will repetively loop through
 void loop() {
   input = ""; // Clears variable for new input
-  delay(10);
-  //if there is data
+  delay(10); 
+  //if there is data being sent
   if (mySerial.available()) {
     // While data is comming, add the data to the input string
     while (mySerial.available()) {
       delay(10);  // Small delay to allow input buffer to fill
 
       char c = mySerial.read();  // Gets one byte from serial buffer
-      input += c;
-    } // Makes the string readString
-    if (input == "b" ){
+      input += c; // Add byte to a string to construct input
+    } 
+    if (input == "b" ){ // If the input is "b" (stands for bubble) then turn on the bubble machine 
       activateBubbleMachine();
     }
-    if (input == "c"){
+    if (input == "c"){// If the input is "c", (for reCommence), then it will reset program
       reset();
     }
     // If the input length > 9 then it is for the RFID. therefor check the RDIF UID
     if (input.length() > 9) {
       testUID(input);
     }
-    // If it is not over 9 then it is for the question
+    // If it is 8 then it is for the question 
     else if (input.length() == 8){
       if (input == "00101010"){ // Checks if the input is 42 in binary
-        mySerial.write("t"); // Writes true
-        mySerial.flush();
+        mySerial.write("t"); // Writes true to the arduino
+        mySerial.flush(); // Waits for the message to send 
       }
       else{
         questionWrong ++; // Increments the amount of wrong questions
-        returnFalse();
+        returnFalse(); // Runs the false command
       }
     }
   }
 }
 
+
 // This funciton will test the inputted UID against the ones stored
 void testUID(String ID) {
+  //boolean value for whether or not the ID is valid
   bool valid = false;
   // For each correct ID compare them to the given ID
-  for (String testID: validIDs) {
+  for (String testID: validIDs) { // For each Valid ID we will check it against the inputted ID
     if (ID == testID) {
+      //If it is the same then turn it true
       valid = true;
     }
   }
   // If it is valid then write true
   if (valid) {
-    mySerial.write("t"); 
-    mySerial.flush();
+    mySerial.write("t");  // Write true
+    mySerial.flush(); // Waiting for the message to send
   }
   else {
     // If it is not increment the amount of wrong RFIDs , and return 
-   RFIDWrong ++;
-   returnFalse();
+   RFIDWrong ++; // Increments the amount of wrong RFIDs
+   returnFalse(); // Runs the return false function
    
    }
 }
 
-
+//This is the reuturn false function which checks whether or not the user has inputted too many wrong attempts
 void returnFalse(){
-  if ((RFIDWrong > 2) || (questionWrong > 2)){
+  if ((RFIDWrong > 2) || (questionWrong > 2)){ // If the RFID or Question has been done wrong 3 times then alarm activate
     reset();
-    mySerial.write("r");
+    mySerial.write("r"); // Sends r signifying reset
     mySerial.flush();
   }
   else{
-    mySerial.write("f");
+    mySerial.write("f"); //sends F signifying wrong answer
     mySerial.flush();
   }
 }
@@ -124,7 +131,7 @@ void reset(){
 }
 void activateBubbleMachine() {  
   // Turns on the relay to activate the bubble machine
-  reset();
+  reset(); // Resets Variables
   digitalWrite(5, HIGH);
   delay(7000);
   digitalWrite(5, LOW);
