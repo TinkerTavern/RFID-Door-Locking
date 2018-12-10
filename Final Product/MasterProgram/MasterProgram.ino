@@ -55,9 +55,6 @@ void setup() {
   while (!Serial);    // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
   SPI.begin();        // Init SPI bus
   rfid.PCD_Init(); // Init MFRC522
-//    for (byte i = 0; i < 6; i++) {
-//      key.keyByte[i] = 0xFF;
-//    }
   attachInterrupt(0, answer1, FALLING); // Specifying which interrupt pins correspond to which pin, and specifying the ISRs
   attachInterrupt(1, answer2, FALLING);
 
@@ -88,7 +85,6 @@ void loop() {
           updateScreen("Please scan RFID card",23, 5, 40); // Replaces the text with an empty string
           if (!timer.isRunning()) timer.start(30000);
           if (timer.isRunning()) timer.restart();
-
           updateTimer();
         }
       }
@@ -158,8 +154,6 @@ void loop() {
       delay(10);
       // If the answer is of length 8 then it is a full answer and needs to be evaluated
       if (binaryAnswer.length() == 8) {
-        //      String Answer="";
-
         char Answer[8];
         // Loops through the answer and adds it to a char array
         // To be writted to the slave arduino for checking
@@ -184,7 +178,7 @@ void loop() {
             delay(2);                       // waits 15ms for the servo to reach the position
           }
           updateScreen("Door Opened", 12, 5 , 40);
-          delay(500);
+          delay(500); // Plays a door opened jingle
           tone(A0, 300, 500);
           delay(200);
           tone(A0, 900, 500);
@@ -215,11 +209,8 @@ void loop() {
           TFTscreen.text("0", 50, 80); // Replaces the text with an empty string
           binaryAnswer = "";
         }
-
-
       }
       // Turn the buttons back on
-
       if (faceDetected == true) {
         buttonsPressed = false;
       }
@@ -228,8 +219,8 @@ void loop() {
 }
 
 
-// This function will take the input from system.read and turn it int oa string array
 String byteToStringArray(byte *buffer, byte bufferSize) {
+  // This function will take the input from system.read and turn it int oa string array
   String arr[bufferSize];
   // Loop through for each integer value and store it in a new array
   for (byte i = 0; i < bufferSize; i++) {
@@ -335,21 +326,20 @@ void updateScreen(String text, int textLen, int x, int y) {
   TFTscreen.background(255, 0, 0);
   TFTscreen.stroke(255, 255, 255); // Clears the previous text
   char buf[textLen];
-  text.toCharArray(buf, textLen);
+  text.toCharArray(buf, textLen); 
   TFTscreen.text(buf, x, y);
 }
 
 // This function restarts the program at the end
 // It does so by resetting all variables and the screen and waiting for 5 seconds
 void restartProgram() {
-  
   RFIDValid = "f";
   binaryAnswer = "";
   faceDetected = false;
   buttonsPressed = true;
   mySerial.write("c");
   mySerial.flush();
-  while(mySerial.available()){
+  while(mySerial.available()){ // Recieves the whole input string
     mySerial.read();
   }
   delay(5000);
