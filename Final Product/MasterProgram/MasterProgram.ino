@@ -74,8 +74,7 @@ void loop() {
   // Checking if a face has been detected from the slave arduino
   if (!faceDetected) {
     String newString;
-    newString = "True";
-    //if (Serial.available()) {
+    if (Serial.available()) {
       while (Serial.available()) {
         delay(10);  // Small delay to allow input buffer to fill
         char c = Serial.read();  // Gets one byte from serial buffer
@@ -92,7 +91,7 @@ void loop() {
 
           updateTimer();
         }
-   //   }
+      }
     }
   }
   // Check the timer to see if it has run out, if not then update said timer.
@@ -110,22 +109,10 @@ void loop() {
       if ( ! rfid.PICC_ReadCardSerial())
         return;
 
-//            MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
-//      
-//            // Check is the PICC of Classic MIFARE type
-//            if (piccType != MFRC522::PICC_TYPE_MIFARE_MINI &&
-//                piccType != MFRC522::PICC_TYPE_MIFARE_1K &&
-//                piccType != MFRC522::PICC_TYPE_MIFARE_4K) {
-//              return;
-//            }
-
       // Store NUID into nuidPICC array
       for (byte i = 0; i < 4; i++) {
         nuidPICC[i] = rfid.uid.uidByte[i];
       }
-
-      // TFTscreen.stroke(255,0,0); // Clears the previous text
-      // TFTscreen.text(sensorPrintout, 10, 70); // Replaces the text with an empty string
 
       sensorVal = byteToStringArray(rfid.uid.uidByte, rfid.uid.size);
       // Halt PICC
@@ -180,7 +167,6 @@ void loop() {
           Answer[i] = binaryAnswer.charAt(i);
           Answer[i + 1] = '\0';
         }
-        Serial.println(Answer);
         mySerial.write(Answer);
         mySerial.flush();
         // A delay of 300 to allow the slave arduino to recieve,process and send a response

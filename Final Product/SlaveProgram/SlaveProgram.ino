@@ -58,7 +58,6 @@ void loop() {
       char c = mySerial.read();  // Gets one byte from serial buffer
       input += c;
     } // Makes the string readString
-  Serial.println(input);
     if (input == "b" ){
       activateBubbleMachine();
     }
@@ -74,13 +73,9 @@ void loop() {
       if (input == "00101010"){ // Checks if the input is 42 in binary
         mySerial.write("t"); // Writes true
         mySerial.flush();
-        Serial.println("t");
       }
       else{
-        
-        Serial.println("Quesiton Wrong");
         questionWrong ++; // Increments the amount of wrong questions
-        Serial.println(questionWrong);
         returnFalse();
       }
     }
@@ -98,15 +93,12 @@ void testUID(String ID) {
   }
   // If it is valid then write true
   if (valid) {
-    Serial.println("t");
     mySerial.write("t"); 
     mySerial.flush();
   }
   else {
     // If it is not increment the amount of wrong RFIDs , and return 
    RFIDWrong ++;
-   Serial.println("RFID WRONG");
-   Serial.println(RFIDWrong);
    returnFalse();
    
    }
@@ -118,22 +110,21 @@ void returnFalse(){
     reset();
     mySerial.write("r");
     mySerial.flush();
-    Serial.println("Restart");
   }
   else{
-    Serial.println("F");
     mySerial.write("f");
     mySerial.flush();
   }
 }
 
 void reset(){
+  // Resets the variables for the program
   RFIDWrong = 0;
   questionWrong = 0;
 }
-void activateBubbleMachine() {   
+void activateBubbleMachine() {  
+  // Turns on the relay to activate the bubble machine
   reset();
-  
   digitalWrite(5, HIGH);
   delay(7000);
   digitalWrite(5, LOW);
