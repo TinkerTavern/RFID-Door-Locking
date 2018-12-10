@@ -36,8 +36,8 @@ SoftwareSerial mySerial(2, 3); // RX, TX Pins for the HC-05 modules
 // Initializing variables
 String input; // To store the input
 String validIDs[2] = {"1d 53 fe 9c ","bd a5 0 9d "}; // The valid RDIF UIDs
-int RFIDWrong; // How many times the RFID has been scanned wrong
-int questionWrong; // Jow many times the question has been answered wrong
+int RFIDWrong = 0; // How many times the RFID has been scanned wrong
+int questionWrong = 0; // Jow many times the question has been answered wrong
 
 void setup() {
   // Establish connections
@@ -59,22 +59,28 @@ void loop() {
       input += c;
     } // Makes the string readString
   Serial.println(input);
-   // If the input length > 9 then it is for the RFID. therefor check the RDIF UID
     if (input == "b" ){
       activateBubbleMachine();
     }
+    if (input == "c"){
+      reset();
+    }
+    // If the input length > 9 then it is for the RFID. therefor check the RDIF UID
     if (input.length() > 9) {
       testUID(input);
     }
-
     // If it is not over 9 then it is for the question
-    else{
+    else if (input.length() == 8){
       if (input == "00101010"){ // Checks if the input is 42 in binary
         mySerial.write("t"); // Writes true
+        mySerial.flush();
         Serial.println("t");
       }
       else{
+        
+        Serial.println("Quesiton Wrong");
         questionWrong ++; // Increments the amount of wrong questions
+        Serial.println(questionWrong);
         returnFalse();
       }
     }
@@ -92,34 +98,42 @@ void testUID(String ID) {
   }
   // If it is valid then write true
   if (valid) {
-            Serial.println("t");
-
+    Serial.println("t");
     mySerial.write("t"); 
+    mySerial.flush();
   }
   else {
     // If it is not increment the amount of wrong RFIDs , and return 
    RFIDWrong ++;
+   Serial.println("RFID WRONG");
+   Serial.println(RFIDWrong);
    returnFalse();
+   
    }
 }
 
 
 void returnFalse(){
   if ((RFIDWrong > 2) || (questionWrong > 2)){
-    RFIDWrong = 0;
-    questionWrong = 0;
-   
+    reset();
     mySerial.write("r");
-            Serial.println("r");
+    mySerial.flush();
+    Serial.println("Restart");
   }
   else{
+    Serial.println("F");
     mySerial.write("f");
-            Serial.println("f");
+    mySerial.flush();
   }
 }
 
-
-void activateBubbleMachine() {
+void reset(){
+  RFIDWrong = 0;
+  questionWrong = 0;
+}
+void activateBubbleMachine() {   
+  reset();
+  
   digitalWrite(5, HIGH);
   delay(7000);
   digitalWrite(5, LOW);

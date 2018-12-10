@@ -49,6 +49,8 @@ void setup() {
   TFTscreen.begin();
   doorLock.attach(A5);
   mySerial.begin(38400);
+  mySerial.write("c");
+  mySerial.flush();
   Serial.begin(9600); // Initialize serial communications with the PC
   while (!Serial);    // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
   SPI.begin();        // Init SPI bus
@@ -64,7 +66,7 @@ void setup() {
 
   TFTscreen.background(255, 0, 0);
   TFTscreen.stroke(255, 255, 255);
-  TFTscreen.text("Waiting for face", 5, 40); // Replaces the text with an empty string
+  updateScreen("Waiting for face",16, 5, 40); // Replaces the text with an empty string
 }
 
 // Main function which will be looped through
@@ -83,11 +85,8 @@ void loop() {
       if (newString.length() > 0) {
         if (newString == "True") {
           tone(A0, 3000, 500); // Correct tag noise
-         
           faceDetected = true;
-          TFTscreen.background(255, 0, 0);
-          TFTscreen.stroke(255, 255, 255);
-          TFTscreen.text("Please scan RFID card", 5, 40); // Replaces the text with an empty string
+          updateScreen("Please scan RFID card",23, 5, 40); // Replaces the text with an empty string
           if (!timer.isRunning()) timer.start(30000);
           if (timer.isRunning()) timer.restart();
 
@@ -107,7 +106,7 @@ void loop() {
       if (! rfid.PICC_IsNewCardPresent())
         return;
 
-      // Verify if the NUID has been readed
+      // Verify if the NUID has been read
       if ( ! rfid.PICC_ReadCardSerial())
         return;
 
@@ -136,6 +135,7 @@ void loop() {
 
       sensorVal.toCharArray(sensorPrintout, 13); // Converts the string to a char array for display
       mySerial.write(sensorPrintout); // Sends the RFID tag for verification
+      mySerial.flush();
       delay(200); // Delay to ensure the slave's response is finished before checking
       RFIDValid = recieveCommand();
 
@@ -161,6 +161,9 @@ void loop() {
         // Else, if the RFID was not valid then, display access denied and play an alarm
         updateScreen("Access Denied", 15, 5, 40);
         tone(A0, 100, 500); // Incorrect tag
+        delay(1000);
+        updateScreen("Please scan RFID card",23, 5, 40); // Replaces the text with an empty string
+        
       }
     }
     // If the RFID tag has been answered as correct, then check the question answer
@@ -179,6 +182,7 @@ void loop() {
         }
         Serial.println(Answer);
         mySerial.write(Answer);
+        mySerial.flush();
         // A delay of 300 to allow the slave arduino to recieve,process and send a response
         delay(300);
       }
@@ -327,6 +331,7 @@ void checkTimer() {
 void startAlarm() {
   // Update the screen
   mySerial.write("b");
+  mySerial.flush();
   updateScreen("INTRUDER ALERT!!!!!!", 22, 5, 20);
   for (int i = 0; i < 10; i++) {
     tone(A0, 2000, 500);
@@ -351,10 +356,16 @@ void updateScreen(String text, int textLen, int x, int y) {
 // This function restarts the program at the end
 // It does so by resetting all variables and the screen and waiting for 5 seconds
 void restartProgram() {
+  
   RFIDValid = "f";
   binaryAnswer = "";
   faceDetected = false;
   buttonsPressed = true;
+  mySerial.write("c");
+  mySerial.flush();
+  while(mySerial.available()){
+    mySerial.read();
+  }
   delay(5000);
   TFTscreen.background(255, 0, 0);
   TFTscreen.stroke(255, 255, 255);
