@@ -1,9 +1,5 @@
 //importing servo library
 #include <Servo.h>
-//initializing servo
-Servo doorLock;
-int pos = 0;
-
 #include <millisDelay.h>
 // RFID Libraries
 #include <MFRC522.h>
@@ -13,7 +9,6 @@ int pos = 0;
 // Bluetooth library (Software serial)
 #include <SoftwareSerial.h>
 // Initializing bluetooth connection
-SoftwareSerial mySerial(4, 5); // RX, TX Pins for the HC-05 modules
 // TFT Screen pins, configured to be different for compatability
 #define cs 8
 #define dc 7
@@ -21,30 +16,27 @@ SoftwareSerial mySerial(4, 5); // RX, TX Pins for the HC-05 modules
 // RFID Pins, not changed
 #define RST_PIN 9
 #define SS_PIN 10
+SoftwareSerial mySerial(4, 5); // RX, TX Pins for the HC-05 modules
+//initializing servo
+Servo doorLock;
+TFT TFTscreen = TFT(cs, dc, rst);
+MFRC522 rfid(SS_PIN, RST_PIN);   // Create MFRC522 instance.
+MFRC522::MIFARE_Key key;
+millisDelay timer;
+// Init array that will store new NUID
+byte nuidPICC[4];
+char sensorPrintout[13];
+bool faceDetected = false;
+String timeRemaining;
+// A boolean value to store whether the buttons have been pressed
+bool buttonsPressed = true; //starts as true as we dont want the user to use buttons at the start
+int pos = 0;
 int answerButton1 = 2;
 int answerButton2 = 3;
 String RFIDValid = "f";
 String binaryAnswer = "";
-
-TFT TFTscreen = TFT(cs, dc, rst);
-
-MFRC522 rfid(SS_PIN, RST_PIN);   // Create MFRC522 instance.
-
-MFRC522::MIFARE_Key key;
-
-millisDelay timer;
-
-// Init array that will store new NUID
-byte nuidPICC[4];
-
-char sensorPrintout[13];
-bool faceDetected = false;
-String timeRemaining;
-
-// A boolean value to store whether the buttons have been pressed
-bool buttonsPressed = true; //starts as true as we dont want the user to use buttons at the start
-
 // Setup function initializing variables and starting connections.
+
 void setup() {
   TFTscreen.begin();
   doorLock.attach(A5);
@@ -57,10 +49,8 @@ void setup() {
   rfid.PCD_Init(); // Init MFRC522
   attachInterrupt(0, answer1, FALLING); // Specifying which interrupt pins correspond to which pin, and specifying the ISRs
   attachInterrupt(1, answer2, FALLING);
-
   pinMode(answerButton1, INPUT); // Set player buttons as inputs
   pinMode(answerButton2, INPUT);
-
   TFTscreen.background(255, 0, 0);
   TFTscreen.stroke(255, 255, 255);
   updateScreen("Waiting for face",16, 5, 40); // Replaces the text with an empty string
@@ -100,28 +90,23 @@ void loop() {
       // Look for new cards
       if (! rfid.PICC_IsNewCardPresent())
         return;
-
       // Verify if the NUID has been read
       if ( ! rfid.PICC_ReadCardSerial())
         return;
-
       // Store NUID into nuidPICC array
       for (byte i = 0; i < 4; i++) {
         nuidPICC[i] = rfid.uid.uidByte[i];
       }
-
       sensorVal = byteToStringArray(rfid.uid.uidByte, rfid.uid.size);
       // Halt PICC
       rfid.PICC_HaltA();
       // Stop encryption on PCD
       rfid.PCD_StopCrypto1();
-
       sensorVal.toCharArray(sensorPrintout, 13); // Converts the string to a char array for display
       mySerial.write(sensorPrintout); // Sends the RFID tag for verification
       mySerial.flush();
       delay(200); // Delay to ensure the slave's response is finished before checking
       RFIDValid = recieveCommand();
-
       // If they have scanned a correct RFID tag then we need to swap to question mode
       if (RFIDValid == "t") {
         updateScreen("Access Granted", 15, 5, 40);
@@ -133,7 +118,6 @@ void loop() {
           TFTscreen.text("1", 50, 60); // Replaces the text with an empty string
           TFTscreen.text("0", 50, 80); // Replaces the text with an empty string
         buttonsPressed = false;
-
       }
       else if (RFIDValid == "r") {
         // If the return was "r" restart the program after the alarm is turned on
@@ -218,7 +202,6 @@ void loop() {
   }
 }
 
-
 String byteToStringArray(byte *buffer, byte bufferSize) {
   // This function will take the input from system.read and turn it int oa string array
   String arr[bufferSize];
@@ -241,7 +224,6 @@ String intArrayToString(String *intArray, byte bufferSize) {
   }
   return fullString;
 }
-
 
 void answer1() { // ISR for the answer 1 button
   if (buttonsPressed == false) {
@@ -268,7 +250,6 @@ String recieveCommand() {
   }
   // If the string is not null return the string
   if (command.length() > 0) {
-
     return command; // Returns the string
   }
   else return "f"; // Returns f if nothing found
@@ -277,7 +258,6 @@ String recieveCommand() {
 // Update the timer function, this updates the timer on the led screen
 void updateTimer() {
   char buff[5];
-
   int timeBuffer = timer.remaining() % 1000;
   if (timeBuffer < 150) {
     TFTscreen.fill(255, 0, 0);
@@ -290,7 +270,6 @@ void updateTimer() {
     TFTscreen.text(buff, 0, 0);
     TFTscreen.setTextSize(1);
   }
-
 }
 
 // Function to check if the time is up
@@ -339,9 +318,7 @@ void restartProgram() {
   buttonsPressed = true;
   mySerial.write("c");
   mySerial.flush();
-  while(mySerial.available()){ // Recieves the whole input string
-    mySerial.read();
-  }
+  while(mySerial.available()) mySerial.read(); // Recieves the whole input string
   delay(5000);
   TFTscreen.background(255, 0, 0);
   TFTscreen.stroke(255, 255, 255);

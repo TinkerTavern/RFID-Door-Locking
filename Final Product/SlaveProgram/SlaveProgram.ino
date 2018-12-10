@@ -28,17 +28,15 @@ Commands Sent:
 
 now when done disconnect 5v ---> EN 
        connect RX and TX on module to pins you want on arduino */
-
        
 // Including the library for soft serial
 #include <SoftwareSerial.h>
 SoftwareSerial mySerial(2, 3); // RX, TX Pins for the HC-05 module
 // Initializing variables
-String input; // To store the input from the master
+String input; 
 String validIDs[2] = {"1d 53 fe 9c ","bd a5 0 9d "}; // The valid RDIF UIDs (our library cards)
 int RFIDWrong = 0; // How many times the RFID has been scanned wrong
-int questionWrong = 0; // Jow many times the question has been answered wrong
-
+int questionWrong = 0; // How many times the question has been answered wrong
 
 // This is setup , this runs when the arduino turns on and sets up the connecton 
 void setup() {
@@ -48,17 +46,15 @@ void setup() {
   pinMode(5, OUTPUT);
 }
 
-
 // This is the main loop which the program will repetively loop through
 void loop() {
   input = ""; // Clears variable for new input
   delay(10); 
-  //if there is data being sent
+  // If there is data being sent
   if (mySerial.available()) {
     // While data is comming, add the data to the input string
     while (mySerial.available()) {
       delay(10);  // Small delay to allow input buffer to fill
-
       char c = mySerial.read();  // Gets one byte from serial buffer
       input += c; // Add byte to a string to construct input
     } 
@@ -80,16 +76,15 @@ void loop() {
       }
       else{
         questionWrong ++; // Increments the amount of wrong questions
-        returnFalse(); // Runs the false command
+        returnFalse(); 
       }
     }
   }
 }
 
-
 // This funciton will test the inputted UID against the ones stored
 void testUID(String ID) {
-  //boolean value for whether or not the ID is valid
+  // Boolean value for whether or not the ID is valid
   bool valid = false;
   // For each correct ID compare them to the given ID
   for (String testID: validIDs) { // For each Valid ID we will check it against the inputted ID
@@ -107,7 +102,6 @@ void testUID(String ID) {
     // If it is not increment the amount of wrong RFIDs , and return 
    RFIDWrong ++; // Increments the amount of wrong RFIDs
    returnFalse(); // Runs the return false function
-   
    }
 }
 
@@ -119,7 +113,7 @@ void returnFalse(){
     mySerial.flush();
   }
   else{
-    mySerial.write("f"); //sends F signifying wrong answer
+    mySerial.write("f"); //sends f signifying wrong answer
     mySerial.flush();
   }
 }
@@ -129,9 +123,10 @@ void reset(){
   RFIDWrong = 0;
   questionWrong = 0;
 }
+
 void activateBubbleMachine() {  
   // Turns on the relay to activate the bubble machine
-  reset(); // Resets Variables
+  reset();
   digitalWrite(5, HIGH);
   delay(7000);
   digitalWrite(5, LOW);
