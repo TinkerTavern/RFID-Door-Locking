@@ -20,3 +20,11 @@ locked out and an alarm will go off.
 
 All of the information is shown on a small TFT screen, controlled by the master Arduino
 This information includes the timer and the text telling the user what to do
+
+
+We also had to make a video, and do a 2 page writeup about the project, both of which can be seen within this GitHub
+
+Things to add with more time:
+- Face recognition, so only certain faces would have access
+- A more secure way of using RFID, by using more than just UIDs
+- More buttons, probably in a button pad
